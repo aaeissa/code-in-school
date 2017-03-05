@@ -1,6 +1,3 @@
-# TODO
-# get rid of pdf/txt/file_path vars, use format{} where appropriate
-
 from requests import get
 import textract
 import csv
@@ -48,12 +45,10 @@ def minority_data(race, cleaned_data):
 		students = 0
 		return students
 
+
 states = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY']
 
 base_url = 'https://code.org/advocacy/state-facts/'
-pdf = '.pdf'
-txt = '.txt'
-file_path = 'data/'
 cols = ['State', 'Population', 'Median_Income', 'Total_Schools', 'Total_AP', 'Female_AP', 'Hispanic/Latino_AP', 'Black_AP', 'Nat_Am_AP', 'Nat_Haw_AP']
 
 # Source: http://www.census.gov/data/tables/2016/demo/popest/state-total.html
@@ -73,14 +68,14 @@ with open('stateData.csv', 'a') as f:
 		# all state info stores in this lis, for csv row
 		state_data = [state, population[csv_count], income[csv_count]]
 
-		r = get(base_url+state+pdf)
+		r = get('{}{}.pdf'.format(base_url, state))
 
 		# download fact sheet to /data
-		with open(file_path+state+pdf, 'wb') as f:
+		with open('data/{}.pdf'.format(state), 'wb') as f:
 			f.write(r.content)
 
 		# extract text from PDF fact sheets
-		text = textract.process(file_path+state+pdf, method='pdfminer')
+		text = textract.process('data/{}.pdf'.format(state), method='pdfminer')
 
 		# text is littered with tabs and newlines
 		cleaned_data = ''
@@ -91,7 +86,7 @@ with open('stateData.csv', 'a') as f:
 				cleaned_data += ' '
 
 		# write the cleaned text to a .txt file for each state
-		with open(file_path+state+txt, 'wb') as f:
+		with open('data/{}.txt'.format(state), 'wb') as f:
 			f.write(cleaned_data)
 
 		# Number of high schools with AP CS classes
@@ -102,7 +97,8 @@ with open('stateData.csv', 'a') as f:
 			schools = data[0].split(' ')
 			state_data.append(int(schools[1]))
 		except:
-			print('No schools offering AP course in {}'.format(state))
+			# No schools offering the AP course
+			state_data.append(0)
 
 		# Total number of students that took the AP exam
 		print('testing totalAP')
